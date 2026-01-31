@@ -1,6 +1,6 @@
 import sys
 import fileinput
-from Q2.part_a import main
+from Q2.part_b import main
 from helpers import q2_input
 
 if __name__ == "__main__":
