@@ -1,6 +1,6 @@
 import sys
 import heapq
-# test using diff <(cat tests/gen2.in | python Q1.py) <(cat tests/gen2.out)
+# test using diff <(cat tests/X | python Q1.py) <(cat tests/X)
 
 def find_cheapest_walks (G, s, t, q):
     """
@@ -77,4 +77,4 @@ if __name__ == "__main__":
                 G[edge[0]][edge[1]] = edge[2]
 
     answer = find_cheapest_walks(G, s, t, int(q))
-    print(" ".join(answer))
+    print(*answer, end="")
