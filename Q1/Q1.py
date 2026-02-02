@@ -1,6 +1,6 @@
 import sys
 import heapq
-#cat test.txt | python main.py
+# test using diff <(cat tests/gen2.in | python Q1.py) <(cat tests/gen2.out)
 
 def find_cheapest_walks (G, s, t, q):
     """
