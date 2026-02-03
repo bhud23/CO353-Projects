@@ -14,8 +14,9 @@ def find_cheapest_walks (G, s, t, q):
     heapq.heappush(mh, [0, s])
 
     nodes = set(G.keys())
-    for v, nbrs in G.items():
-        nodes.update(nbrs.keys())
+    for v, edges in G.items():
+        for n, weight in edges:
+            nodes.add(n)
     nodes.add(s)
     nodes.add(t)
 
@@ -37,9 +38,9 @@ def find_cheapest_walks (G, s, t, q):
             if len(answers) == q:
                 break
 
-        for u, w in G.get(v, {}).items():# iterate thru edges connected to current node v
-            if len(dist_list[u]) < q: # we can push more edges
-                heapq.heappush(mh, (d + w, u))
+        for neighbor, w in G.get(v, []):# iterate thru edges connected to current node v
+            if len(dist_list[neighbor]) < q: # we can push more edges
+                heapq.heappush(mh, (d + w, neighbor))
 
     return answers
 
@@ -66,8 +67,8 @@ if __name__ == "__main__":
         u, v, w = line.split()
         w = int(w)  # or float(w) if weights can be non-integers
 
-        G.setdefault(u, {})[v] = w
-        G.setdefault(v, {})  # ensure v is in G
+        G.setdefault(u, []).append((v, w))
+        G.setdefault(v, []) # ensure v is in G
 
     answer = find_cheapest_walks(G, s, t, q)
     print(*answer, end="")
