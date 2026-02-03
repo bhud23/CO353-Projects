@@ -23,11 +23,10 @@ def find_cheapest_walks (G, s, t, q):
     dist_list = {node: [] for node in nodes}
 
     while mh and len(answers) < q:
-        d, v = heapq.heappop(mh) # returns a list first element is distance next is node label
+        d, v = heapq.heappop(mh) # returns a list, first elemnt is distance next is node label
 
-        # if we already have q walks from cur[1] then skip the rest, for efficieny
+        # if we already have q walks from v then skip the rest, for efficieny
         if len(dist_list[v]) == q:
-            
             continue
     
         dist_list[v].append(d)
@@ -39,7 +38,7 @@ def find_cheapest_walks (G, s, t, q):
                 break
 
         for neighbor, w in G.get(v, []):# iterate thru edges connected to current node v
-            if len(dist_list[neighbor]) < q: # we can push more edges
+            if len(dist_list[neighbor]) < q: # if we can push more edges
                 heapq.heappush(mh, (d + w, neighbor))
 
     return answers
@@ -58,14 +57,13 @@ if __name__ == "__main__":
         if i == 0:
             n, m, q = map(int, line.split())
             continue
-
+git a
         if i == 1:
             s, t = line.split()
-            # if your nodes are integers, do: s, t = map(int, line.split())
             continue
 
         u, v, w = line.split()
-        w = int(w)  # or float(w) if weights can be non-integers
+        w = int(w) 
 
         G.setdefault(u, []).append((v, w))
         G.setdefault(v, []) # ensure v is in G
