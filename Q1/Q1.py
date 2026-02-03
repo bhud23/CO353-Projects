@@ -76,5 +76,5 @@ if __name__ == "__main__":
             else:
                 G[edge[0]][edge[1]] = edge[2]
 
-    answer = find_cheapest_walks(G, s, t, int(q))
-    print(*answer, end="")
+        answer = find_cheapest_walks(G, s, t, int(q))
+        print(*answer, end="")
