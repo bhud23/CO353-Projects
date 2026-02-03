@@ -39,42 +39,35 @@ def find_cheapest_walks (G, s, t, q):
 
         for u, w in G.get(v, {}).items():# iterate thru edges connected to current node v
             if len(dist_list[u]) < q: # we can push more edges
-                heapq.heappush(mh, (d + int(w), u))
+                heapq.heappush(mh, (d + w, u))
 
     return answers
 
 
 if __name__ == "__main__":
-    n, m, q = -1, -1, -1
-    s, t = -1, -1
+    n = m = q = -1
+    s = t = None
+    G = {} # we represent the digraph as a dict of a dict where first key is tail, with value that is a dict with key that is head and value is weight of an edge
 
-    # we will represent the graph as a dict of nodes coupled with another dict of nodes and weights representing in-node and weight of that edge
-    G = {}
+    for i, line in enumerate(sys.stdin):
+        line = line.strip()
+        if not line:
+            continue  # skip blank lines
 
-    if sys.stdin is not None:
-        # read lines to generate graph G
-        for i, line in enumerate(sys.stdin):
+        if i == 0:
+            n, m, q = map(int, line.split())
+            continue
 
-            # first line are paramters n, m, q
-            if i == 0:
-                params = line.strip().split(" ")
-                n = params[0]
-                m = params[1]
-                q = params[2]
-                continue
+        if i == 1:
+            s, t = line.split()
+            # if your nodes are integers, do: s, t = map(int, line.split())
+            continue
 
-            # second line are nodes s and t
-            elif i == 1:
-                nodes = line.strip().split(" ")
-                s = nodes[0]
-                t = nodes[1]
-                continue
-            
-            edge = line.strip().split(" ")
-            if edge[0] not in G:
-                G[edge[0]] = {edge[1] : edge[2]}
-            else:
-                G[edge[0]][edge[1]] = edge[2]
+        u, v, w = line.split()
+        w = int(w)  # or float(w) if weights can be non-integers
 
-        answer = find_cheapest_walks(G, s, t, int(q))
-        print(*answer, end="")
+        G.setdefault(u, {})[v] = w
+        G.setdefault(v, {})  # ensure v is in G
+
+    answer = find_cheapest_walks(G, s, t, q)
+    print(*answer, end="")
