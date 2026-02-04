@@ -1,101 +1,97 @@
 import sys
+from collections import defaultdict 
+import heapq
 
-class Node:
-    """
-    _id (Str)
-    weight (Int)
-    """
-    def __init__(self, id, weight = None):
-        self._id = id
-        self.weight = weight
+# Graph and Segment Trees. (2020, Feb 14). A Simple Blog. Retrieved February 3, 2026, from
+#   https://robert1003.github.io/2020/02/14/graphs-and-segment-tree.html
 
-class Arc:
-    """
-    node_out (Node)
-    node_in (Node)
-    weight (Int)
-    """
-    def __init__(self, node_out, node_in, weight = None):    
-        self.node_out = node_out
-        self.node_in = node_in
-        self.weight = weight
+# The above source was used to understand the modified segment trees and how to work with general (l, r) ranges
 
-class Digraph:
-    """
-    _arc_matrix (dictof Str (listof Arc))
-    _node_list (listof Node)
-    """
-    def __init__(self, num_nodes, node_weights=None, arcs=None):
-        # Set data objects
-        self._arc_matrix = [[None for _ in range(num_nodes)] for _ in range(num_nodes)]
-        self._node_list = []
+# How can we modify the SegTree structure used in part A to allow ranges that don't correspond to the tree?
+# Since the tree covers all ranges we can break our range into multiple ranges. This shouldn't be too many
+# extra edges, infact because this is a tree it is bounded by O(log(n)), which is exactly what our extra time constraint is
+class SegTreeGraph:
+    def __init__(self, size, input_arcs):
+        self.size = size
 
-        # Create nodes
-        if node_weights:
-            for i, weight in enumerate(node_weights):
-                new = Node(i, weight)
-                self._node_list.append(new)
+        # List of adjacent neighbours for each node
+        self.adj_list = defaultdict(list)
+        self.nodes = set()
+
+        # Fill adj_list with the trivial 0 weights
+        self.build_zero_weight_edges(1, size)
+
+        # Add the weighted edges
+        # Note, this time instead each line corresponding to just one interval
+        # lines may require multiple arcs but then the solver runs the same
+        for arc in input_arcs:
+            node_out, interval, weight = arc
+            useful_intervals = self.find_corresponding_intervals(interval, (1, size))
+            for useful_interval in useful_intervals:
+                self.adj_list[(node_out, node_out)].append((useful_interval, weight))
+
+    # Descend the Segtree and recursivly return the corresponding intervals for search_interval
+    def find_corresponding_intervals(self, search_interval, check_interval):
+        search_left, search_right = search_interval
+        check_left, check_right = check_interval
+        if search_left == check_left and search_right == check_right:
+            return [check_interval]
+        
+        corresponding_intervals = []
+
+        check_mid = (check_left + check_right) // 2
+        if search_left <= check_mid:
+            corresponding_intervals += self.find_corresponding_intervals(
+                (search_left, min(search_right, check_mid)), (check_left, check_mid))
+        if search_right > check_mid:
+            corresponding_intervals += self.find_corresponding_intervals(
+                (max(check_mid + 1, search_left), search_right), (check_mid + 1, check_right))
+
+        return corresponding_intervals
+        
+    def build_zero_weight_edges(self, left, right):
+        self.nodes.add((left, right))
+        if left == right:
+            return
         else:
-            for node in range(num_nodes):
-                new = Node(node)
-                self._node_list.append(new)
+            mid = (left + right) // 2
 
-        # Create arcs
-        for arc in arcs:
-            node_out = arc[0]
-            node_in = arc[1]
-            weight = arc[2]
-            new_arc = Arc(node_out, node_in, weight)
-            existing_arc = self._arc_matrix[node_out-1][node_in-1]
-            if (not existing_arc or existing_arc.weight > new_arc.weight):
-                self._arc_matrix[node_out-1][node_in-1] = new_arc
+            self.adj_list[(left, right)].append(((left, mid), 0))
+            self.adj_list[(left, right)].append(((mid + 1, right), 0))
 
-    def get_node(self, id):
-        return self._node_list[id - 1]
+            self.build_zero_weight_edges(left, mid)
+            self.build_zero_weight_edges(mid + 1, right)
+
+def main(g, s):
+    # distance dictionary for each node
+    dist = defaultdict(lambda: float('inf'))
+    dist[(s, s)] = 0
     
-    def get_arc(self, node_out, node_in):
-        return self._arc_matrix[node_out-1][node_in-1]
-          
-    def nodes(self):
-      return list(map(lambda node: node._id, self._node_list))
+    # priority queue, each tuple is (distance, interval_node)
+    pq = [(0, (s, s))]
+    while pq:
+        # current distance and interval of the closest node
+        cur_dist, cur_int = heapq.heappop(pq)
+        
+        # stale entry (don't need visited dict anymore)
+        if cur_dist != dist[cur_int]: 
+            continue
 
-    def arcs(self):     
-        arc_list = []
-        for arcs in self._arc_matrix:
-            arc_list = arc_list + arcs
-        return arc_list
+        # int_n is interval_neighbour 
+        for int_n, weight in g.adj_list[cur_int]:
+            new_dist = cur_dist + weight
+            if new_dist < dist[int_n]:
+                dist[int_n] = new_dist
+                heapq.heappush(pq, (new_dist, int_n))
+
     
-    def is_arc(self, node_out, node_in):
-        return self._arc_matrix[node_out-1][node_in-1] != None
+    # print solution
+    ans = []
+    for i in range(1, g.size + 1):
+        v = dist[(i,i)]
+        ans.append(v if v != float('inf') else -1)
     
-    def out_arcs(self, node_id):
-        return list(filter(bool, self._arc_matrix[node_id-1]))
-    
-    def in_arcs(self, node_id):
-        in_arcs = []
-        for arcs in self._arc_matrix:
-            if arcs[node_id-1] != None:
-                in_arcs.append(arcs[node_id-1])
-        return in_arcs
-
-    def node_weight(self, node_id):
-        return self._node_list[node_id-1].weight
-
-    def arc_weight(self, node_out, node_in):
-        arc = self._arc_matrix[node_out-1][node_in-1]
-        return None if arc == None else arc.weight
-
-    def set_node_weight(self, id, weight):     
-        self._node_list[id-1].weight = weight
-     
-    def set_arc_weight(self, node_out, node_in, weight):
-        for arc in self._arc_matrix[node_out-1]:
-            if arc.node_in == node_in:
-                arc.weight = weight
-                break
-
-def main(g: Digraph, s):
-    return 1
+    print(*ans)
 
 if __name__ == "__main__":
     n, q, s = 0, 0, 0
@@ -105,9 +101,9 @@ if __name__ == "__main__":
 
         # read lines to generate graph G
         for i, line in enumerate(sys.stdin):
-            # first line are paramters n, m, q
+            # first line are paramters n, q, s (number of nodes, number of lines, starting root node)
             if i == 0:
-                params = line.strip().split(" ")
+                params = line.split()
                 n = int(params[0])
                 q = int(params[1])
                 s = int(params[2])
@@ -115,15 +111,13 @@ if __name__ == "__main__":
             elif q < i:
                 break
 
-            arcs = line.strip().split(" ")
+            arcs = line.split()
             v = int(arcs[0])
             l = int(arcs[1])
             r = int(arcs[2])
             c = int(arcs[3])
-            for node_in in range(l, r + 1):
-                input_arcs.append((v, node_in, c))
-    
-    # Build G
-    g = Digraph(n, None, input_arcs)
+            input_arcs.append((v, (l, r), c))
 
+    # Build the segment tree
+    g = SegTreeGraph(n, input_arcs)
     main(g, s)
