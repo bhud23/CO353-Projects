@@ -1,6 +1,6 @@
 import sys
 import fileinput
-from Q2.part_a import main
+from Q2.part_b import main
 from helpers import q2_input
 
 if __name__ == "__main__":
@@ -20,9 +20,9 @@ if __name__ == "__main__":
             input.close()
         elif arg == "3":
             print("Testing Q2B")
-            input = fileinput.input("tests/q2a_test1.in")
+            input = fileinput.input("tests/q2b_test.in")
             g, s = q2_input(input)
-            # Solve Q2B
+            main(g, s)
             input.close()
         else:
             print("Please provide at least 1 argument of 1, 2, or 3.")

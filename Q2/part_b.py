@@ -2,6 +2,14 @@ import sys
 from collections import defaultdict 
 import heapq
 
+# Graph and Segment Trees. (2020, Feb 14). A Simple Blog. Retrieved February 3, 2026, from
+#   https://robert1003.github.io/2020/02/14/graphs-and-segment-tree.html
+
+# The above source was used to understand the modified segment trees and how to work with general (l, r) ranges
+
+# How can we modify the SegTree structure used in part A to allow ranges that don't correspond to the tree?
+# Since the tree covers all ranges we can break our range into multiple ranges. This shouldn't be too many
+# extra edges, infact because this is a tree it is bounded by O(log(n)), which is exactly what our extra time constraint is
 class SegTreeGraph:
     def __init__(self, size, input_arcs):
         self.size = size
@@ -54,37 +62,36 @@ class SegTreeGraph:
             self.build_zero_weight_edges(left, mid)
             self.build_zero_weight_edges(mid + 1, right)
 
-    def modified_dijkstra(self, root):
-        # distance dictionary for each node
-        dist = defaultdict(lambda: float('inf'))
-        dist[(root, root)] = 0
-
-        # priority queue, each tuple is (distance, interval_node)
-        pq = [(0, (root, root))]
-        while pq:
-            # current distance and interval of the closest node
-            cur_dist, cur_int = heapq.heappop(pq)
-            
-            # stale entry (don't need visited dict anymore)
-            if cur_dist != dist[cur_int]: 
-                continue
-
-            # int_n is interval_neighbour 
-            for int_n, weight in self.adj_list[cur_int]:
-                new_dist = cur_dist + weight
-                if new_dist < dist[int_n]:
-                    dist[int_n] = new_dist
-                    heapq.heappush(pq, (new_dist, int_n))
-
+def main(g, s):
+    # distance dictionary for each node
+    dist = defaultdict(lambda: float('inf'))
+    dist[(s, s)] = 0
+    
+    # priority queue, each tuple is (distance, interval_node)
+    pq = [(0, (s, s))]
+    while pq:
+        # current distance and interval of the closest node
+        cur_dist, cur_int = heapq.heappop(pq)
         
-        # print solution
-        ans = []
-        for i in range(1, self.size + 1):
-            v = dist[(i,i)]
-            ans.append(v if v != float('inf') else -1)
-        
-        print(*ans)
+        # stale entry (don't need visited dict anymore)
+        if cur_dist != dist[cur_int]: 
+            continue
 
+        # int_n is interval_neighbour 
+        for int_n, weight in g.adj_list[cur_int]:
+            new_dist = cur_dist + weight
+            if new_dist < dist[int_n]:
+                dist[int_n] = new_dist
+                heapq.heappush(pq, (new_dist, int_n))
+
+    
+    # print solution
+    ans = []
+    for i in range(1, g.size + 1):
+        v = dist[(i,i)]
+        ans.append(v if v != float('inf') else -1)
+    
+    print(*ans)
 
 if __name__ == "__main__":
     n, q, s = 0, 0, 0
@@ -112,5 +119,5 @@ if __name__ == "__main__":
             input_arcs.append((v, (l, r), c))
 
     # Build the segment tree
-    seg_tree = SegTreeGraph(n, input_arcs)
-    seg_tree.modified_dijkstra(s)
+    g = SegTreeGraph(n, input_arcs)
+    main(g, s)
