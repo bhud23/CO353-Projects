@@ -1,12 +1,41 @@
 import sys
-import DSU
+# import DSU
 # python q2a.py < tests/test.in > tests/test.out; diff test.out test.expect
+
+# custom class for a disjoint-set union DS
+class DSU:
+    def __init__(self, n):
+        self.parent = list(range(n + 1))
+        self.size = [1] * (n + 1) # array of 1s
+
+    def find(self, x):
+        while self.parent[x] != x:
+            self.parent[x] = self.parent[self.parent[x]]
+            x = self.parent[x]
+        return x
+
+    def union(self, a, b):
+        ra = self.find(a)
+        rb = self.find(b)
+
+        if ra == rb:
+            return False
+        
+        if self.size[ra] < self.size[rb]:
+            ra, rb = rb, ra # swap
+        
+        self.parent[rb] = ra
+        self.size[ra] += self.size[rb]
+        return True
+
+    def same (self, a, b):
+        return self.find(a) == self.find(b)
 
 def find_t_vals(n, blue, red):
     ans = [0] * (n - 1)
 
     for u, v, d, idx in red:
-        dsu = DSU.DSU(n) # special class i made for disjoint set union
+        dsu = DSU(n) # special class i made for disjoint set union
 
         # add the red edges with smaller rd val than fixed d val
         for ru, rv, rd, _ in red:
@@ -65,10 +94,6 @@ if __name__ == "__main__":
         R.append((u, v, d, i))
 
     B.sort(key=lambda x: x[2])  # sort by the cost value in increasing order
-
-    print("n =", n)
-    print("blue tree\n", B)
-    print("red tree\n", R)
 
     answer = find_t_vals(n, B, R)
     print(*answer, end="")
