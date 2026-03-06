@@ -134,8 +134,9 @@ class SegTree:
   def set_points(self, node):
     if node.l == node.r:
       node.points = node.max_points
-      node.max_red = 1 if colours[node.l] == 'R' else 0
-      node.max_blue = 1 - node.max_red
+      if node.max_points:
+        node.max_red = 1 if colours[node.l] == 'R' and node.max_red != 0 else 0
+        node.max_blue = 1 - node.max_red
     else:
       left_points, l_max_red, l_max_blue = self.set_points(self.nodes[node.left])
       right_points, r_max_red, r_max_blue = self.set_points(self.nodes[node.right])
